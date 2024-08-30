@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skin Care Routine Widget</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f3f4f6;
+        padding: 20px;
+        margin: 0;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .product-list {
+        position: sticky; /* Changed from fixed to sticky */
+        top: 20px; /* Space from the top of the viewport */
+        max-height: 500px; /* Adjust as needed */
+        overflow-y: auto;
+        padding: 15px;
+        background-color: #f9fafb;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .product-card {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        cursor: grab;
+      }
+
+      .product-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+      }
+
+      .product-card p {
+        margin: 0;
+      }
+
+      .routine {
+        background-color: #e5e7eb;
+        padding: 15px;
+        border-radius: 5px;
+      }
+
+      .routine h2 {
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+
+      .time-slot {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        margin-bottom: 5px;
+        border-radius: 5px;
+      }
+
+      .droppable {
+        width: 100%;
+        height: 50px;
+        border: 2px dashed #ddd;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 5px;
+      }
+
+      .progress-section {
+        margin-top: 30px;
+      }
+
+      #progressChart {
+        max-width: 100%;
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Skin Care Routine Widget</h1>
+        <label for="skinType">Select Your Skin Type:</label>
+        <select id="skinType">
+          <option value="oily">Oily</option>
+          <option value="dry">Dry</option>
+          <option value="normal">Normal</option>
+          <option value="combination">Combination</option>
+          <option value="sensitive">Sensitive</option>
+        </select>
+      </div>
+
+      <div class="product-list" id="productList"></div>
+
+      <div class="routine">
+        <h2>Your Routine</h2>
+        <div id="routineList">
+          <div class="time-slot">
+            <span>12:00 AM</span>
+            <div class="droppable" data-time="12:00 AM"></div>
+          </div>
+          <div class="time-slot">
+            <span>1:00 AM</span>
+            <div class="droppable" data-time="1:00 AM"></div>
+          </div>
+          <div class="time-slot">
+            <span>2:00 AM</span>
+            <div class="droppable" data-time="2:00 AM"></div>
+          </div>
+          <div class="time-slot">
+            <span>3:00 AM</span>
+            <div class="droppable" data-time="3:00 AM"></div>
+          </div>
+          <div class="time-slot">
+            <span>4:00 AM</span>
+            <div class="droppable" data-time="4:00 AM"></div>
+          </div>
+          <div class="time-slot">
+            <span>5:00 AM</span>
+            <div class="droppable" data-time="5:00 AM"></div>
+          </div>
+          <div class="time-slot">
+            <span>6:00 AM</span>
+            <div class="droppable" data-time="6:00 AM"></div>
+          </div>
+          <div class="time-slot">
+            <span>7:00 AM</span>
+            <div class="droppable" data-time="7:00 AM"></div>
+          </div>
+          <div class="time-slot">
+            <span>8:00 AM</span>
+            <div class="droppable" data-time="8:00 AM"></div>
+          </div>
+          <div class="time-slot">
+            <span>9:00 AM</span>
+            <div class="droppable" data-time="9:00 AM"></div>
+          </div>
+          <div class="time-slot">
+            <span>10:00 AM</span>
+            <div class="droppable" data-time="10:00 AM"></div>
+          </div>
+          <div class="time-slot">
+            <span>11:00 AM</span>
+            <div class="droppable" data-time="11:00 AM"></div>
+          </div>
+          <div class="time-slot">
+            <span>12:00 PM</span>
+            <div class="droppable" data-time="12:00 PM"></div>
+          </div>
+          <div class="time-slot">
+            <span>1:00 PM</span>
+            <div class="droppable" data-time="1:00 PM"></div>
+          </div>
+          <div class="time-slot">
+            <span>2:00 PM</span>
+            <div class="droppable" data-time="2:00 PM"></div>
+          </div>
+          <div class="time-slot">
+            <span>3:00 PM</span>
+            <div class="droppable" data-time="3:00 PM"></div>
+          </div>
+          <div class="time-slot">
+            <span>4:00 PM</span>
+            <div class="droppable" data-time="4:00 PM"></div>
+          </div>
+          <div class="time-slot">
+            <span>5:00 PM</span>
+            <div class="droppable" data-time="5:00 PM"></div>
+          </div>
+          <div class="time-slot">
+            <span>6:00 PM</span>
+            <div class="droppable" data-time="6:00 PM"></div>
+          </div>
+          <div class="time-slot">
+            <span>7:00 PM</span>
+            <div class="droppable" data-time="7:00 PM"></div>
+          </div>
+          <div class="time-slot">
+            <span>8:00 PM</span>
+            <div class="droppable" data-time="8:00 PM"></div>
+          </div>
+          <div class="time-slot">
+            <span>9:00 PM</span>
+            <div class="droppable" data-time="9:00 PM"></div>
+          </div>
+          <div class="time-slot">
+            <span>10:00 PM</span>
+            <div class="droppable" data-time="10:00 PM"></div>
+          </div>
+          <div class="time-slot">
+            <span>11:00 PM</span>
+            <div class="droppable" data-time="11:00 PM"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-section">
+        <h2>Rate Your Skin Improvement</h2>
+        <input type="number" id="ratingInput" min="0" max="10" value="0" />
+        <button id="updateRating">Update Rating</button>
+        <canvas id="progressChart"></canvas>
+      </div>
+    </div>
+
+    <script>
+      const skincareData = {
+        oily: [
+          {
+            id: '1',
+            name: 'Oil Control Cleanser',
+            effects: 'Removes excess oil',
+            benefits: 'Reduces acne',
+          },
+          {
+            id: '2',
+            name: 'Mattifying Moisturizer',
+            effects: 'Hydrates without shine',
+            benefits: 'Matte finish',
+          },
+          {
+            id: '3',
+            name: 'Oil-Free Sunscreen',
+            effects: 'Protects from UV rays',
+            benefits: 'No oily residue',
+          },
+          {
+            id: '4',
+            name: 'Charcoal Mask',
+            effects: 'Deep cleans pores',
+            benefits: 'Controls oil production',
+          },
+          {
+            id: '5',
+            name: 'Niacinamide Serum',
+            effects: 'Reduces sebum production',
+            benefits: 'Minimizes pores',
+          },
+        ],
+        dry: [
+          {
+            id: '9',
+            name: 'Hydrating Cleanser',
+            effects: 'Gentle cleansing',
+            benefits: 'Retains moisture',
+          },
+          {
+            id: '10',
+            name: 'Rich Moisturizer',
+            effects: 'Deep hydration',
+            benefits: 'Nourishes dry skin',
+          },
+          {
+            id: '11',
+            name: 'Hyaluronic Acid Serum',
+            effects: 'Intense hydration',
+            benefits: 'Plumps skin',
+          },
+          {
+            id: '12',
+            name: 'Gentle Exfoliating Scrub',
+            effects: 'Removes dead skin cells',
+            benefits: 'Smooths texture',
+          },
+          {
+            id: '13',
+            name: 'Squalane Oil',
+            effects: 'Moisturizes without greasiness',
+            benefits: 'Softens skin',
+          },
+          {
+            id: '14',
+            name: 'Overnight Hydrating Mask',
+            effects: 'Deep hydration while sleeping',
+            benefits: 'Restores moisture balance',
+          },
+        ],
+        normal: [
+          {
+            id: '15',
+            name: 'Balanced Cleanser',
+            effects: 'Cleanses without stripping',
+            benefits: 'Maintains moisture balance',
+          },
+          {
+            id: '16',
+            name: 'Daily Moisturizer',
+            effects: 'Hydrates and protects',
+            benefits: 'Keeps skin comfortable',
+          },
+          {
+            id: '17',
+            name: 'Gentle Exfoliant',
+            effects: 'Removes dead skin cells',
+            benefits: 'Enhances radiance',
+          },
+          {
+            id: '18',
+            name: 'Vitamin C Serum',
+            effects: 'Brightens and evens skin tone',
+            benefits: 'Reduces dark spots',
+          },
+          {
+            id: '19',
+            name: 'Sunscreen SPF 30',
+            effects: 'Protects from UV rays',
+            benefits: 'Prevents premature aging',
+          },
+          {
+            id: '20',
+            name: 'Hydrating Toner',
+            effects: 'Balances pH levels',
+            benefits: 'Refreshes skin',
+          },
+        ],
+        combination: [
+          {
+            id: '21',
+            name: 'Foaming Cleanser',
+            effects: 'Cleanses without over-drying',
+            benefits: 'Balances oily and dry areas',
+          },
+          {
+            id: '22',
+            name: 'Oil-Control Moisturizer',
+            effects: 'Hydrates and controls shine',
+            benefits: 'Balances combination skin',
+          },
+          {
+            id: '23',
+            name: 'Exfoliating Clay Mask',
+            effects: 'Cleanses and exfoliates',
+            benefits: 'Controls oil and hydrates dry areas',
+          },
+          {
+            id: '24',
+            name: 'Niacinamide Lotion',
+            effects: 'Reduces oil and hydrates',
+            benefits: 'Improves skin texture',
+          },
+          {
+            id: '25',
+            name: 'Hydrating Serum',
+            effects: 'Provides balanced hydration',
+            benefits: 'Soothes and smooths skin',
+          },
+          {
+            id: '26',
+            name: 'Hydrating Face Mist',
+            effects: 'Instant hydration',
+            benefits: 'Refreshes and balances',
+          },
+        ],
+        sensitive: [
+          {
+            id: '27',
+            name: 'Gentle Cleanser',
+            effects: 'Soothes and cleanses',
+            benefits: 'Non-irritating',
+          },
+          {
+            id: '28',
+            name: 'Calming Moisturizer',
+            effects: 'Hydrates and calms',
+            benefits: 'Reduces redness',
+          },
+          {
+            id: '29',
+            name: 'Aloe Vera Gel',
+            effects: 'Soothes irritation',
+            benefits: 'Calms and heals',
+          },
+          {
+            id: '30',
+            name: 'Hypoallergenic Sunscreen',
+            effects: 'Protects from UV rays',
+            benefits: 'Gentle on sensitive skin',
+          },
+          {
+            id: '31',
+            name: 'Chamomile Face Cream',
+            effects: 'Reduces inflammation',
+            benefits: 'Soothes sensitive skin',
+          },
+          {
+            id: '32',
+            name: 'Hydrating Rosewater Mist',
+            effects: 'Hydrates and calms',
+            benefits: 'Reduces sensitivity',
+          },
+        ],
+      };
+
+      const skinTypeSelect = document.getElementById('skinType');
+      const productList = document.getElementById('productList');
+      const routineList = document.getElementById('routineList');
+      const ratingInput = document.getElementById('ratingInput');
+      const updateRatingButton = document.getElementById('updateRating');
+      const progressChartCtx = document
+        .getElementById('progressChart')
+        .getContext('2d');
+      let progressChart;
+
+      function displayProducts() {
+        const skinType = skinTypeSelect.value;
+        const products = skincareData[skinType];
+        const usedProducts = getUsedProductIds();
+
+        productList.innerHTML = '';
+        products
+          .filter((product) => !usedProducts.includes(product.id))
+          .forEach((product) => {
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card';
+            productCard.draggable = true;
+            productCard.dataset.id = product.id;
+            productCard.innerHTML = `
+                        <h3>${product.name}</h3>
+                        <p><strong>Effects:</strong> ${product.effects}</p>
+                        <p><strong>Benefits:</strong> ${product.benefits}</p>
+                    `;
+            productCard.addEventListener('dragstart', dragStart);
+            productList.appendChild(productCard);
+          });
+      }
+
+      function getUsedProductIds() {
+        const routine = JSON.parse(localStorage.getItem('routine')) || [];
+        return routine.map((item) => item.productId);
+      }
+
+      function dragStart(event) {
+        event.dataTransfer.setData('text/plain', event.target.dataset.id);
+      }
+
+      function allowDrop(event) {
+        event.preventDefault();
+      }
+
+      function drop(event) {
+        event.preventDefault();
+        const productId = event.dataTransfer.getData('text/plain');
+        const product = skincareData[skinTypeSelect.value].find(
+          (p) => p.id === productId
+        );
+        const timeSlot = event.target.getAttribute('data-time');
+
+        if (product && timeSlot) {
+          const routineItem = document.createElement('div');
+          routineItem.textContent = product.name;
+          routineItem.className = 'product-card';
+          routineItem.draggable = false;
+          event.target.appendChild(routineItem);
+
+          saveRoutine(productId, product.name, timeSlot);
+          setReminder(product.name, timeSlot);
+          displayProducts();
+        }
+      }
+
+      function saveRoutine(productId, productName, timeSlot) {
+        const routine = JSON.parse(localStorage.getItem('routine')) || [];
+        routine.push({ productId, productName, timeSlot });
+        localStorage.setItem('routine', JSON.stringify(routine));
+      }
+
+      function loadRoutine() {
+        // Clear routine from localStorage
+        localStorage.removeItem('routine');
+
+        // Clear existing routine items but keep the droppable areas
+        const droppables = document.querySelectorAll('.droppable');
+        droppables.forEach((droppable) => {
+          // Remove only the routine items
+          const routineItems = droppable.querySelectorAll('.product-card');
+          routineItems.forEach((item) => {
+            droppable.removeChild(item);
+          });
+        });
+
+        // Load and display the saved routine for the current skin type
+        const routine = JSON.parse(localStorage.getItem('routine')) || [];
+        const currentSkinType = skinTypeSelect.value;
+
+        routine
+          .filter((item) =>
+            skincareData[currentSkinType].some((p) => p.id === item.productId)
+          )
+          .forEach((item) => {
+            const droppable = document.querySelector(
+              `.droppable[data-time="${item.timeSlot}"]`
+            );
+            if (droppable) {
+              const routineItem = document.createElement('div');
+              routineItem.textContent = item.productName;
+              routineItem.className = 'product-card';
+              routineItem.draggable = false;
+              droppable.appendChild(routineItem);
+            }
+          });
+      }
+
+      function setReminder(productName, timeSlot) {
+        const now = new Date();
+        const [time, period] = timeSlot.split(' ');
+        const [hour, minute] = time.split(':');
+
+        // Convert to 24-hour format
+        let hours = parseInt(hour, 10);
+        if (period === 'PM' && hours < 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+
+        const reminderTime = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          hours,
+          parseInt(minute, 10)
+        );
+
+        if (reminderTime > now) {
+          const timeout = reminderTime - now;
+          setTimeout(() => {
+            alert(`Time to use your product: ${productName}`);
+          }, timeout);
+        }
+      }
+
+      function initProgressChart() {
+        const ratingHistory =
+          JSON.parse(localStorage.getItem('ratingHistory')) || [];
+        const labels = ratingHistory.map((entry) =>
+          new Date(entry.timestamp).toLocaleDateString()
+        );
+        const ratings = ratingHistory.map((entry) => entry.rating);
+
+        progressChart = new Chart(progressChartCtx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Skin Condition Rating Over Time',
+                data: ratings,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Date',
+                },
+              },
+              y: {
+                beginAtZero: true,
+                max: 10,
+                title: {
+                  display: true,
+                  text: 'Rating',
+                },
+              },
+            },
+          },
+        });
+      }
+
+      function updateProgressChart(rating) {
+        const timestamp = new Date().toISOString();
+        let ratingHistory =
+          JSON.parse(localStorage.getItem('ratingHistory')) || [];
+        ratingHistory.push({ rating, timestamp });
+        localStorage.setItem('ratingHistory', JSON.stringify(ratingHistory));
+
+        const labels = ratingHistory.map((entry) =>
+          new Date(entry.timestamp).toLocaleDateString()
+        );
+        const ratings = ratingHistory.map((entry) => entry.rating);
+
+        progressChart.data.labels = labels;
+        progressChart.data.datasets[0].data = ratings;
+        progressChart.update();
+      }
+
+      skinTypeSelect.addEventListener('change', () => {
+        loadRoutine();
+        displayProducts();
+      });
+
+      document.querySelectorAll('.droppable').forEach((droppable) => {
+        droppable.addEventListener('dragover', allowDrop);
+        droppable.addEventListener('drop', drop);
+      });
+      updateRatingButton.addEventListener('click', () => {
+        const rating = parseInt(ratingInput.value);
+        localStorage.setItem('rating', rating);
+        updateProgressChart(rating);
+      });
+
+      displayProducts();
+      loadRoutine();
+      initProgressChart();
+    </script>
+  </body>
+</html>

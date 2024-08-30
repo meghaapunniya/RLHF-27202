@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skin Care Routine Builder</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f3f4f6;
+        padding: 20px;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+      .header,
+      .products,
+      .routine {
+        flex-basis: 100%;
+      }
+      .products {
+        flex-basis: 40%;
+        overflow-y: auto;
+        max-height: 500px;
+        padding-right: 10px;
+      }
+      .routine {
+        flex-basis: 55%;
+      }
+      .product-card {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        cursor: grab;
+      }
+      .routine .product-card {
+        cursor: default;
+      }
+      .droppable {
+        border: 2px dashed #ddd;
+        padding: 10px;
+        margin-bottom: 5px;
+        min-height: 50px;
+      }
+      .rating {
+        display: inline-block;
+        margin-left: 10px;
+      }
+      .progress {
+        flex-basis: 100%;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Skin Care Routine Builder</h1>
+        <label>Select Skin Type:</label>
+        <select id="skinType">
+          <option value="oily">Oily</option>
+          <option value="dry">Dry</option>
+          <option value="normal">Normal</option>
+          <option value="combination">Combination</option>
+          <option value="sensitive">Sensitive</option>
+        </select>
+      </div>
+      <div class="products" id="productList"></div>
+      <div class="routine">
+        <h2>Routine</h2>
+        <div id="routineList"></div>
+      </div>
+      <div class="progress">
+        <h2>Progress Tracker</h2>
+        <canvas id="progressChart"></canvas>
+      </div>
+    </div>
+
+    <script>
+      const skinTypeSelect = document.getElementById('skinType');
+      const productList = document.getElementById('productList');
+      const routineList = document.getElementById('routineList');
+      const progressChartElement = document.getElementById('progressChart');
+      let productsData = {};
+      let routineData = [];
+      let chartInstance = null;
+
+      const skinCareProducts = {
+        oily: [...Array(10)].map((_, i) => ({
+          id: `oily-${i}`,
+          name: `Product ${i} for Oily Skin`,
+          effects: `Effect of product ${i}`,
+          benefits: `Benefits of product ${i}`,
+        })),
+        dry: [...Array(10)].map((_, i) => ({
+          id: `dry-${i}`,
+          name: `Product ${i} for Dry Skin`,
+          effects: `Effect of product ${i}`,
+          benefits: `Benefits of product ${i}`,
+        })),
+        // Add other skin types as needed
+      };
+
+      function initializeChart() {
+        const ctx = progressChartElement.getContext('2d');
+        chartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: 'Skin Improvement',
+                data: [],
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 10,
+              },
+            },
+          },
+        });
+      }
+
+      function updateChart(rating) {
+        if (!chartInstance) return;
+        const labels = chartInstance.data.labels;
+        const data = chartInstance.data.datasets[0].data;
+        labels.push(new Date().toLocaleTimeString());
+        data.push(rating);
+        chartInstance.update();
+      }
+
+      function displayProducts(skinType) {
+        const products = skinCareProducts[skinType];
+        productList.innerHTML = '';
+        products.forEach((product) => {
+          const productCard = document.createElement('div');
+          productCard.className = 'product-card';
+          productCard.draggable = true;
+          productCard.dataset.id = product.id;
+          productCard.innerHTML = `
+                    <h3>${product.name}</h3>
+                    <p>Effects: ${product.effects}</p>
+                    <p>Benefits: ${product.benefits}</p>
+                `;
+          productCard.addEventListener('dragstart', dragStart);
+          productList.appendChild(productCard);
+        });
+      }
+
+      function dragStart(event) {
+        event.dataTransfer.setData('text', event.target.dataset.id);
+      }
+
+      function allowDrop(event) {
+        event.preventDefault();
+      }
+
+      function drop(event) {
+        event.preventDefault();
+        const id = event.dataTransfer.getData('text');
+        const product = skinCareProducts[skinTypeSelect.value].find(
+          (p) => p.id === id
+        );
+        if (product) {
+          const ratingHtml = `<input type="number" class="rating" min="1" max="10" placeholder="Rate (1-10)">`;
+          const productHtml = `<div class="product-card">${product.name} ${ratingHtml}</div>`;
+          event.target.innerHTML = productHtml;
+          const ratingInput = event.target.querySelector('.rating');
+          ratingInput.addEventListener('change', function () {
+            const rating = parseInt(this.value, 10);
+            updateChart(rating);
+          });
+          removeProductFromList(id);
+        }
+      }
+
+      function removeProductFromList(id) {
+        const productCard = productList.querySelector(`[data-id="${id}"]`);
+        if (productCard) {
+          productCard.remove();
+        }
+      }
+
+      function setupDragAndDrop() {
+        const droppables = document.querySelectorAll('.droppable');
+        droppables.forEach((droppable) => {
+          droppable.addEventListener('dragover', allowDrop);
+          droppable.addEventListener('drop', drop);
+        });
+      }
+
+      skinTypeSelect.addEventListener('change', () =>
+        displayProducts(skinTypeSelect.value)
+      );
+
+      document.addEventListener('DOMContentLoaded', () => {
+        displayProducts('oily'); // Default skin type
+        initializeChart();
+        setupDragAndDrop();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skin Care Routine Widget</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.css"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f9;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1200px;
+        margin: auto;
+        display: flex;
+      }
+      .products,
+      .routine {
+        flex: 1;
+        padding: 20px;
+      }
+      .products {
+        background: white;
+        border-right: 1px solid #eee;
+        position: sticky;
+        top: 0;
+        height: calc(100vh - 40px);
+        overflow-y: auto;
+      }
+      .routine {
+        background: #e9ebee;
+      }
+      .product-card {
+        background: #fff;
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: move;
+      }
+      .time-slot {
+        background: #fff;
+        margin: 5px 0;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      .droppable {
+        min-height: 40px;
+        border: 2px dashed #ccc;
+        margin-top: 5px;
+      }
+      #progressChart {
+        width: 100%;
+        height: 200px;
+      }
+      .rating {
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="products">
+        <h2>Select Your Skin Type</h2>
+        <select id="skinType"></select>
+        <div id="productList"></div>
+      </div>
+      <div class="routine">
+        <h2>Your Routine</h2>
+        <div id="routineList"></div>
+        <div>
+          <h3>Your Progress</h3>
+          <canvas id="progressChart"></canvas>
+          <div class="rating">
+            <label for="skinImprovement">Rate Improvement:</label>
+            <input
+              type="number"
+              id="skinImprovement"
+              min="0"
+              max="10"
+              value="0"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+    <script>
+      const skinTypes = ['oily', 'dry', 'normal', 'combination', 'sensitive'];
+      const skinTypeSelect = document.getElementById('skinType');
+      const productList = document.getElementById('productList');
+      const routineList = document.getElementById('routineList');
+      const improvementRating = document.getElementById('skinImprovement');
+      let chartInstance;
+
+      // Populate skin type dropdown
+      skinTypes.forEach((type) => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+        skinTypeSelect.appendChild(option);
+      });
+
+      const skincareData = {
+        oily: [
+          {
+            id: '1',
+            name: 'Oil Control Cleanser',
+            effects: 'Removes excess oil',
+            benefits: 'Reduces acne',
+          },
+          {
+            id: '2',
+            name: 'Mattifying Moisturizer',
+            effects: 'Hydrates without shine',
+            benefits: 'Matte finish',
+          },
+          {
+            id: '3',
+            name: 'Oil-Free Sunscreen',
+            effects: 'Protects from UV rays',
+            benefits: 'No oily residue',
+          },
+          {
+            id: '4',
+            name: 'Charcoal Mask',
+            effects: 'Deep cleans pores',
+            benefits: 'Controls oil production',
+          },
+          {
+            id: '5',
+            name: 'Niacinamide Serum',
+            effects: 'Reduces sebum production',
+            benefits: 'Minimizes pores',
+          },
+        ],
+        dry: [
+          {
+            id: '6',
+            name: 'Hydrating Cleanser',
+            effects: 'Gentle cleansing',
+            benefits: 'Retains moisture',
+          },
+          // Add more products for dry skin
+        ],
+        // Add more products for other skin types
+      };
+
+      function displayProducts() {
+        const skinType = skinTypeSelect.value;
+        const products = skincareData[skinType] || [];
+        productList.innerHTML = '';
+        products.forEach((product) => {
+          const productDiv = document.createElement('div');
+          productDiv.className = 'product-card';
+          productDiv.draggable = true;
+          productDiv.dataset.id = product.id;
+          productDiv.innerHTML = `<h3>${product.name}</h3><p>${product.effects}</p>`;
+          productDiv.addEventListener('dragstart', dragStart);
+          productList.appendChild(productDiv);
+        });
+      }
+
+      function dragStart(e) {
+        e.dataTransfer.setData('text/plain', e.target.dataset.id);
+      }
+
+      function allowDrop(e) {
+        e.preventDefault();
+      }
+
+      function drop(e) {
+        e.preventDefault();
+        const id = e.dataTransfer.getData('text');
+        const product = skincareData[skinTypeSelect.value].find(
+          (p) => p.id === id
+        );
+        if (product) {
+          const timeSlot = e.target.closest('.time-slot').dataset.time;
+          const productCard = document.querySelector(`[data-id="${id}"]`);
+          e.target.appendChild(productCard);
+          productCard.draggable = false; // Make it not draggable after dropping
+          saveRoutine(product, timeSlot);
+          productCard.style.display = 'none'; // Hide from product list
+        }
+      }
+
+      function saveRoutine(product, time) {
+        let routine = JSON.parse(localStorage.getItem('routine')) || [];
+        routine.push({ ...product, time });
+        localStorage.setItem('routine', JSON.stringify(routine));
+      }
+
+      function loadRoutine() {
+        const routine = JSON.parse(localStorage.getItem('routine')) || [];
+        routine.forEach((item) => {
+          const timeSlot = document.querySelector(
+            `.time-slot[data-time="${item.time}"]`
+          );
+          if (timeSlot) {
+            const productCard = document.querySelector(
+              `[data-id="${item.id}"]`
+            );
+            if (productCard) {
+              timeSlot.querySelector('.droppable').appendChild(productCard);
+              productCard.draggable = false;
+              productCard.style.display = 'none'; // Ensure it's hidden in product list
+            }
+          }
+        });
+      }
+
+      function updateProgressChart(rating) {
+        if (!chartInstance) {
+          const ctx = document.getElementById('progressChart').getContext('2d');
+          chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: [],
+              datasets: [
+                {
+                  label: 'Skin Improvement',
+                  data: [],
+                  borderColor: 'rgb(75, 192, 192)',
+                  fill: false,
+                },
+              ],
+            },
+            options: {
+              scales: {
+                xAxes: [{ type: 'time', time: { unit: 'day' } }],
+                yAxes: [{ ticks: { beginAtZero: true, max: 10 } }],
+              },
+            },
+          });
+        }
+        const now = new Date();
+        chartInstance.data.labels.push(now);
+        chartInstance.data.datasets[0].data.push({ x: now, y: rating });
+        chartInstance.update();
+      }
+
+      improvementRating.addEventListener('change', function () {
+        updateProgressChart(this.value);
+      });
+
+      // Initial setup
+      displayProducts();
+      loadRoutine();
+      updateProgressChart(0); // Initialize chart with a zero value
+
+      // Event listeners
+      skinTypeSelect.addEventListener('change', displayProducts);
+      document.querySelectorAll('.droppable').forEach((dropzone) => {
+        dropzone.addEventListener('dragover', allowDrop);
+        dropzone.addEventListener('drop', drop);
+      });
+
+      // Create time slots dynamically
+      for (let hour = 0; hour < 24; hour++) {
+        const timeSlot = document.createElement('div');
+        timeSlot.className = 'time-slot';
+        timeSlot.dataset.time = `${hour % 12 || 12}${hour < 12 ? 'AM' : 'PM'}`;
+        timeSlot.innerHTML = `<strong>${timeSlot.dataset.time}</strong><div class="droppable"></div>`;
+        routineList.appendChild(timeSlot);
+      }
+    </script>
+  </body>
+</html>

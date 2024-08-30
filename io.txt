@@ -1,0 +1,38 @@
+==================================== Model A: Turn 1 ================================
+Input:
+N/A
+
+Output:
+Displays the skin care widget . 
+select option for skin type
+time slots and drag drop functionality 
+save routine button
+UI is not looking that good.
+
+==================================== Model B: Turn 1 ================================
+Input:
+N/A
+
+Output:
+Displays the skin care widget.
+Displays the skin types like tabs but non-functional no products are being displayed
+No timeslots and hence no drag and drop functionality working
+UI is not good at all.
+
+==================================== Model A: Turn 2 ================================
+Input:
+N/A
+
+Output:
+doesn't seem like the previous ideal response is followed to make changes to the widget. the timeslot is missing and drag and drop functionality is not working.
+Displays chart for showing the progress but there's no option to rate the improvement in the 
+skin condition
+
+==================================== Model B: Turn 2 ================================
+Input:
+N/A
+
+Output:
+doesn't seem like the previous ideal response is followed to make changes to the widget. the timeslot is missing and drag and drop functionality is not working.
+there's an option to rate the improvement in the skin condition but chart is displayed 
+for showing the progress

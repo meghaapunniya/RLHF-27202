@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skin Care Routine Widget</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #routineBuilder { display: flex; }
+        #products, #routine { width: 50%; padding: 10px; }
+        #products div { border: 1px solid #ccc; margin: 5px; padding: 5px; cursor: move; }
+        #routine div { margin: 5px; padding: 5px; }
+        .time-slot { border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<select id="skinType">
+    <option value="oily">Oily</option>
+    <option value="dry">Dry</option>
+    <option value="normal">Normal</option>
+    <option value="combination">Combination</option>
+    <option value="sensitive">Sensitive</option>
+</select>
+
+<div id="products"></div>
+<div id="routine">
+    <div id="timeSlots">
+        <!-- Time slots will be dynamically added here -->
+    </div>
+</div>
+<button onclick="saveRoutine()">Save Routine</button>
+
+<script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script>
+    const products = {
+        oily: [
+            {name: "Foaming Cleanser", effects: "Reduces oil without stripping skin"},
+            // Add more products here
+        ],
+        dry: [{/* dry skin products */}],
+        //... other skin types
+    };
+
+    function populateProducts(type) {
+        const productList = products[type];
+        $('#products').html(productList.map(product => 
+            `<div draggable="true" class="product" data-name="${product.name}">${product.name} - ${product.effects}</div>`
+        ).join(''));
+        initDragDrop();
+    }
+
+    function initDragDrop() {
+        $('.product').draggable({
+            revert: 'invalid',
+            helper: 'clone'
+        });
+
+        $('.time-slot').droppable({
+            accept: '.product',
+            drop: function(event, ui) {
+                $(this).append($(ui.draggable).clone().draggable({revert: false}));
+            }
+        });
+    }
+
+    function createTimeSlots() {
+        for(let i = 0; i < 24; i++) {
+            $('#timeSlots').append(`<div class="time-slot" data-time="${i}">${i % 12 || 12}${i < 12 ? 'AM' : 'PM'}</div>`);
+        }
+        initDragDrop();
+    }
+
+    function saveRoutine() {
+        let routine = {};
+        $('#routine .time-slot').each(function() {
+            let time = $(this).data('time');
+            routine[time] = $(this).find('.product').data('name');
+        });
+        localStorage.setItem('skinCareRoutine', JSON.stringify(routine));
+        alert('Routine saved! Setting reminders...');
+        // Here you would set reminders, possibly using the Web Notifications API
+    }
+
+    $(document).ready(function() {
+        createTimeSlots();
+        $('#skinType').on('change', function() {
+            populateProducts(this.value);
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skin Care Routine Builder</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+    />
+    <style>
+      body {
+        font-family: 'Roboto', sans-serif;
+      }
+      .container {
+        max-width: 800px;
+        margin: auto;
+      }
+      .skin-types,
+      .products,
+      .routine {
+        margin-bottom: 20px;
+      }
+      .skin-types button {
+        margin-right: 10px;
+      }
+      .product {
+        background: #fff;
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+        cursor: move;
+      }
+      .routine {
+        background: #f9f9f9;
+        padding: 10px;
+        min-height: 300px;
+      }
+      .routine-dropzone {
+        list-style: none;
+        padding: 0;
+      }
+      .routine-dropzone li {
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Skin Care Routine Builder</h1>
+      <div class="skin-types">
+        <button data-type="oily">Oily</button>
+        <button data-type="dry">Dry</button>
+        <button data-type="normal">Normal</button>
+        <button data-type="combination">Combination</button>
+        <button data-type="sensitive">Sensitive</button>
+      </div>
+      <div class="products">
+        <h2>Select Your Products:</h2>
+        <div class="product-list"></div>
+      </div>
+      <div class="routine">
+        <h2>Your Routine:</h2>
+        <ul class="routine-dropzone"></ul>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script>
+      const skinCareProducts = {
+        oily: [...],
+        dry: [...],
+        normal: [...],
+        combination: [...],
+        sensitive: [...]
+      };
+
+      // Example product data
+      ["oily", "dry", "normal", "combination", "sensitive"].forEach(type => {
+        skinCareProducts[type] = Array(5).fill(0).map((_, i) => ({
+          name: `Product ${i+1} for ${type}`,
+          effects: 'Hydrates and refreshes',
+          benefits: 'Keeps your skin balanced',
+          routine: 'Morning and Evening'
+        }));
+      });
+
+      $(".skin-types button").on("click", function() {
+        const productsForType = skinCareProducts[$(this).data('type')];
+        $(".product-list").html(productsForType.map(product =>
+          `<div class="product" draggable="true">${product.name}</div>`
+        ).join(''));
+        setupDragAndDrop();
+      });
+
+      function setupDragAndDrop() {
+        const routineDropzone = document.querySelector('.routine-dropzone');
+        new Sortable(routineDropzone, {
+          group: 'shared',
+          animation: 150,
+          onAdd: function(evt) {
+            const productName = evt.item.textContent;
+            const time = prompt('Enter the time for this product (e.g., 8AM or 6PM):');
+            if (time) {
+              evt.item.textContent = `${productName} - ${time}`;
+              saveRoutineToLocalStorage();
+            }
+          }
+        });
+
+        $(".product").attr("draggable", true);
+      }
+
+      function saveRoutineToLocalStorage() {
+        const routine = $(".routine-dropzone li").map(function() {
+          return this.textContent;
+        }).get();
+        localStorage.setItem('skinCareRoutine', JSON.stringify(routine));
+      }
+    </script>
+  </body>
+</html>
